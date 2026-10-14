@@ -1,0 +1,175 @@
+// Trocado — modelo de dados
+//
+// Convenções:
+// - Dinheiro sempre em centavos (Int), nunca em ponto flutuante.
+// - Datas do domínio são texto: `data` = 'AAAA-MM-DD' e `competencia` = 'AAAA-MM'.
+//   Sem hora, um gasto feito às 23h não vira o dia seguinte em UTC e não cai no mês errado.
+// - `competencia` é o mês em que o lançamento conta no orçamento. Para compra no cartão
+//   é o mês da fatura (cada parcela tem a sua); para o resto, o mês da `data`.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                String   @id @default(cuid())
+  nome              String
+  email             String   @unique
+  senhaHash         String
+  /// Quanto da entrada o formulário sugere guardar (0 a 100)
+  percentualGuardar Int      @default(20)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  categorias     Categoria[]
+  cartoes        Cartao[]
+  caixinhas      Caixinha[]
+  lancamentos    Lancamento[]
+  transferencias Transferencia[]
+
+  @@map("usuarios")
+}
+
+enum TipoCategoria {
+  ENTRADA
+  SAIDA
+}
+
+model Categoria {
+  id        String        @id @default(cuid())
+  usuarioId String
+  nome      String
+  tipo      TipoCategoria
+  /// Cor usada nos gráficos (#rrggbb)
+  cor       String        @db.VarChar(7)
+  ativa     Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  usuario     Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  lancamentos Lancamento[]
+
+  @@unique([usuarioId, tipo, nome])
+  @@map("categorias")
+}
+
+model Cartao {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  nome          String
+  /// Dia em que a fatura fecha: compras desse dia em diante vão para a fatura seguinte
+  diaFechamento Int
+  diaVencimento Int
+  cor           String   @db.VarChar(7)
+  ativo         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  usuario     Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  lancamentos Lancamento[]
+
+  @@unique([usuarioId, nome])
+  @@map("cartoes")
+}
+
+model Caixinha {
+  id           String   @id @default(cuid())
+  usuarioId    String
+  nome         String
+  metaCentavos Int?
+  cor          String   @db.VarChar(7)
+  /// Recebe o valor guardado das entradas quando nenhuma outra é escolhida (uma por usuário)
+  padrao       Boolean  @default(false)
+  arquivada    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  usuario       Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  lancamentos   Lancamento[]
+  transfSaida   Transferencia[] @relation("transferenciaDe")
+  transfEntrada Transferencia[] @relation("transferenciaPara")
+
+  @@unique([usuarioId, nome])
+  @@map("caixinhas")
+}
+
+enum TipoLancamento {
+  ENTRADA
+  SAIDA
+  /// Dinheiro separado para uma caixinha: sai do disponível, mas não é gasto
+  GUARDAR
+  /// Dinheiro tirado de uma caixinha: volta ao disponível, mas não é renda
+  RESGATAR
+}
+
+enum FormaPagamento {
+  PIX
+  DEBITO
+  CREDITO
+  DINHEIRO
+  TRANSFERENCIA
+  BOLETO
+}
+
+model Lancamento {
+  id             String          @id @default(cuid())
+  usuarioId      String
+  tipo           TipoLancamento
+  /// Sempre positivo; o sentido vem do tipo
+  valorCentavos  Int
+  /// Dia da compra ou do recebimento ('AAAA-MM-DD')
+  data           String          @db.VarChar(10)
+  /// Mês em que conta ('AAAA-MM')
+  competencia    String          @db.VarChar(7)
+  descricao      String
+  categoriaId    String?
+  caixinhaId     String?
+  formaPagamento FormaPagamento?
+  cartaoId       String?
+  /// Agrupa as parcelas de uma mesma compra no cartão
+  compraId       String?
+  parcela        Int?
+  totalParcelas  Int?
+  /// Valor guardado junto com uma entrada aponta para ela (e some junto se a entrada for excluída)
+  origemId       String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  usuario   Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  categoria Categoria?   @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+  caixinha  Caixinha?    @relation(fields: [caixinhaId], references: [id], onDelete: Restrict)
+  cartao    Cartao?      @relation(fields: [cartaoId], references: [id], onDelete: Restrict)
+  origem    Lancamento?  @relation("guardadoDaEntrada", fields: [origemId], references: [id], onDelete: Cascade)
+  guardados Lancamento[] @relation("guardadoDaEntrada")
+
+  @@index([usuarioId, competencia])
+  @@index([usuarioId, data])
+  @@index([compraId])
+  @@index([origemId])
+  @@map("lancamentos")
+}
+
+/// Dinheiro movido de uma caixinha para outra: não mexe no disponível do mês
+model Transferencia {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  data          String   @db.VarChar(10)
+  valorCentavos Int
+  deId          String
+  paraId        String
+  descricao     String?
+  createdAt     DateTime @default(now())
+
+  usuario Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  de      Caixinha @relation("transferenciaDe", fields: [deId], references: [id], onDelete: Restrict)
+  para    Caixinha @relation("transferenciaPara", fields: [paraId], references: [id], onDelete: Restrict)
+
+  @@index([usuarioId, data])
+  @@map("transferencias")
+}

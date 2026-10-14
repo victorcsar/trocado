@@ -1,0 +1,47 @@
+name: trocado
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-trocado}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: ${POSTGRES_DB:-trocado}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Só na sua máquina (127.0.0.1): para os testes e para rodar o backend fora do Docker
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-trocado}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-trocado}?schema=public
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+      SESSAO_DIAS: ${SESSAO_DIAS:-30}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      USUARIO_NOME: ${USUARIO_NOME:-}
+      USUARIO_EMAIL: ${USUARIO_EMAIL:-}
+      USUARIO_SENHA: ${USUARIO_SENHA:-}
+      DEMO: ${DEMO:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8070}:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

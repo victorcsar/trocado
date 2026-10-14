@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+
+# Segredos e configuração local
+.env
+.env.*
+!.env.example
+
+# Gerado pelo PWA em desenvolvimento
+dev-dist/

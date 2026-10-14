@@ -1,0 +1,146 @@
+@import "tailwindcss";
+@import "@fontsource-variable/archivo/wdth.css";
+
+/* Cores por papel. Escuro é o padrão; o claro vem do botão em Ajustes. */
+:root,
+[data-tema="escuro"] {
+  --fundo: #121210;
+  --superficie: #1b1b18;
+  --linha: #2b2a26;
+  --linha-forte: #45423a;
+  --texto: #f2efe6;
+  --mudo: #8f8a7e;
+  --cobre: #d9834a;
+  --cobre-txt: #1a0f07;
+  --latao: #e3c25b;
+  --creme: #5d594f;
+  --verde: #9fd38b;
+  --vermelho: #ef7b6f;
+  color-scheme: dark;
+}
+
+[data-tema="claro"] {
+  --fundo: #f3f0e8;
+  --superficie: #fbf9f4;
+  --linha: #dcd7cb;
+  --linha-forte: #bdb6a6;
+  --texto: #161512;
+  --mudo: #6c675e;
+  --cobre: #c4672b;
+  --cobre-txt: #fff8f1;
+  --latao: #b08710;
+  --creme: #cbc4b4;
+  --verde: #3b7a29;
+  --vermelho: #c0392b;
+  color-scheme: light;
+}
+
+@theme inline {
+  --font-sans: "Archivo Variable", system-ui, sans-serif;
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-linha: var(--linha);
+  --color-linha-forte: var(--linha-forte);
+  --color-texto: var(--texto);
+  --color-mudo: var(--mudo);
+  --color-cobre: var(--cobre);
+  --color-cobre-txt: var(--cobre-txt);
+  --color-latao: var(--latao);
+  --color-creme: var(--creme);
+  --color-verde: var(--verde);
+  --color-vermelho: var(--vermelho);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--fundo);
+    color: var(--texto);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.25s, color 0.25s;
+  }
+  button {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--cobre);
+    outline-offset: 2px;
+  }
+  /* Campos com 16 px no celular: menos que isso o iOS dá zoom ao focar */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@layer components {
+  /* Rótulo estreito em caixa alta: títulos de seção, cabeçalho de dia, legendas */
+  .rotulo {
+    font-stretch: 75%;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mudo);
+  }
+  /* Número largo e pesado: o que sobrou, títulos de mês, percentuais */
+  .largo {
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+  .estreito {
+    font-stretch: 75%;
+  }
+}
+
+@keyframes entra-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes cresce-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes sobe {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+@keyframes desliza {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+}
+@keyframes aparece {
+  from {
+    opacity: 0;
+  }
+}
+
+.anima-x {
+  transform-origin: left;
+  animation: entra-x 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+.anima-y {
+  transform-origin: bottom;
+  animation: cresce-y 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

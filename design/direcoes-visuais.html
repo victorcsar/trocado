@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trocado — direções visuais</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Caveat:wght@500;700&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  body { font-family: 'IBM Plex Sans', system-ui, sans-serif; padding: 28px 16px 64px; transition: background .3s, color .3s; }
+  body[data-tema="claro"] { background: #dcd9d2; color: #24231f; --sec: #615d55; --borda: #b9b4a8; }
+  body[data-tema="escuro"] { background: #101010; color: #e4e1d9; --sec: #959086; --borda: #333; }
+
+  .intro, .direcao, .fim { max-width: 1180px; margin: 0 auto; }
+  .intro { margin-bottom: 36px; }
+  .intro h1 { font: 600 20px 'IBM Plex Sans', sans-serif; }
+  .intro p { font-size: 14px; color: var(--sec); margin-top: 6px; line-height: 1.55; max-width: 780px; }
+  .controles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; font-size: 13px; }
+  .controles button { padding: 6px 12px; border: 1px solid var(--borda); border-radius: 2px; }
+  .controles button[aria-pressed="true"] { background: currentColor; }
+  .controles button[aria-pressed="true"] span { color: #fff; mix-blend-mode: difference; }
+
+  .direcao { margin-bottom: 56px; }
+  .direcao > header { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; align-items: baseline; margin-bottom: 14px; max-width: 900px; }
+  .direcao > header b { font: 600 15px 'IBM Plex Mono', monospace; grid-row: span 2; }
+  .direcao > header strong { font-size: 15px; font-weight: 600; }
+  .direcao > header span { font-size: 13.5px; color: var(--sec); line-height: 1.5; }
+  .telas { display: flex; flex-wrap: wrap; gap: 28px; }
+  .fim { font-size: 13.5px; color: var(--sec); line-height: 1.55; max-width: 780px; }
+
+  .tela { width: 360px; max-width: 100%; height: 760px; position: relative; overflow: hidden; display: flex; flex-direction: column;
+          box-shadow: 0 1px 2px rgba(0,0,0,.2), 0 10px 28px rgba(0,0,0,.12); }
+  .rola { flex: 1; overflow-y: auto; scrollbar-width: none; }
+  .rola::-webkit-scrollbar { display: none; }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+  /* ============ A — Caderneta ============ */
+  .a { --papel: #f6f1e5; --pauta: #d3dde8; --margem: #e3a19c; --tinta: #1f2a44; --tinta2: #5f6677; --vermelho: #b3261e; --verde: #2e6b3d; --lapis: #8b8577;
+       background: var(--papel); color: var(--tinta); font-family: 'Fraunces', serif; font-optical-sizing: auto; }
+  [data-tema="escuro"] .a { --papel: #151b27; --pauta: #232c3d; --margem: #5c2b30; --tinta: #ebe4d2; --tinta2: #9aa0ab; --vermelho: #ff8a7a; --verde: #8fd19e; --lapis: #828a99; }
+  .a .rola { background:
+      linear-gradient(to right, transparent 0 38px, var(--margem) 38px 39.5px, transparent 39.5px),
+      repeating-linear-gradient(to bottom, transparent 0 27px, var(--pauta) 27px 28px);
+    background-position: 0 0, 0 -5px; background-attachment: local; }
+  .a-folha { padding: 28px 20px 28px 52px; line-height: 28px; font-size: 15px; }
+  .a-topo { display: flex; justify-content: space-between; align-items: baseline; height: 56px; }
+  .a-marca { font: 700 italic 22px 'Fraunces', serif; letter-spacing: -.01em; }
+  .a-mes { font-size: 15px; }
+  .a-mes button { color: var(--tinta2); padding: 0 4px; }
+  .a-mes em { color: var(--tinta2); }
+  .a-conta > div { display: flex; justify-content: space-between; }
+  .a-conta small { font: 500 11px 'IBM Plex Mono', monospace; color: var(--tinta2); margin-left: 6px; }
+  .num { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .a .pos { color: var(--verde); }
+  .a .neg { color: var(--vermelho); }
+  .a-total { font-weight: 600; }
+  .a-total .num { font-weight: 600; font-size: 16px; text-decoration: underline double; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+  .a-nota { white-space: nowrap; font: 500 21px 'Caveat', cursive; color: var(--tinta2); height: 56px; line-height: 28px; padding-top: 14px; transform: rotate(-1.2deg); transform-origin: left; }
+  .a-nota.vermelha { color: var(--vermelho); }
+  .a-dia { font: 700 21px/28px 'Caveat', cursive; margin-top: 28px; }
+  .a-item { display: flex; justify-content: space-between; gap: 10px; white-space: nowrap; }
+  .a-item small { font: 400 italic 13px 'Fraunces', serif; color: var(--lapis); margin-left: 7px; }
+  .a-item .saida, .a-item.fatura .num { color: var(--vermelho); }
+  .a-item.entrada .num { color: var(--verde); }
+  .a-h2 { font: 600 italic 17px/28px 'Fraunces', serif; margin-top: 28px; display: flex; justify-content: space-between; }
+  .a-h2 .num { font-style: normal; color: var(--tinta2); font-weight: 400; }
+  .a-cat { display: grid; grid-template-columns: 92px 1fr 70px; gap: 8px; align-items: center; height: 28px; }
+  .a-cat .num { text-align: right; }
+  .a-traco { height: 9px; background: repeating-linear-gradient(-55deg, var(--tinta) 0 1.3px, transparent 1.3px 4.5px); border-left: 1.5px solid var(--tinta); align-self: end; margin-bottom: 9px; animation: a-risca .7s ease-out backwards; }
+  @keyframes a-risca { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  .a-colunas { height: 140px; display: flex; align-items: flex-end; gap: 7px; border-bottom: 1.5px solid var(--tinta); margin-top: 14px; }
+  .a-colunas > div { flex: 1; display: flex; flex-direction: column-reverse; animation: cresce .7s ease-out backwards; transform-origin: bottom; }
+  .a-colunas i { display: block; }
+  .a-colunas .s { background: repeating-linear-gradient(-55deg, var(--tinta2) 0 1.2px, transparent 1.2px 4px); }
+  .a-colunas .g { background: var(--tinta); }
+  .a-colunas .r { border: 1.2px solid var(--tinta); border-bottom: 0; }
+  .a-meses { display: flex; gap: 7px; font: 400 10px/28px 'IBM Plex Mono', monospace; color: var(--tinta2); text-transform: lowercase; }
+  .a-meses span { flex: 1; text-align: center; }
+  .a-meses span:last-child { color: var(--tinta); font-weight: 600; }
+  .a-caixa { height: 56px; }
+  .a-caixa > div:first-child { display: flex; justify-content: space-between; }
+  .a-caixa .num { font-size: 13px; color: var(--tinta2); }
+  .a-caixa .num b { color: var(--tinta); font-weight: 500; }
+  .a-regua { position: relative; height: 10px; margin-top: 6px; border-bottom: 1px solid var(--tinta2);
+             background: repeating-linear-gradient(to right, var(--tinta2) 0 1px, transparent 1px 10%) bottom/100% 5px no-repeat; }
+  .a-regua i { position: absolute; left: 0; bottom: -1px; height: 4px; background: var(--tinta); animation: a-risca .9s ease-out backwards; }
+  .a-rodape { background: var(--papel); border-top: 1.5px solid var(--tinta); }
+  .a-anotar { width: 100%; height: 46px; background: var(--tinta); color: var(--papel); font: 700 23px 'Caveat', cursive; }
+  .a-abas { display: flex; justify-content: space-around; height: 42px; align-items: center; font: italic 14px 'Fraunces', serif; color: var(--tinta2); }
+  .a-abas .on { color: var(--tinta); text-decoration: underline wavy; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+
+  /* ============ B — Cupom ============ */
+  .b { --fundo: #cfcabd; --papel: #faf8f2; --tinta: #1a1a1a; --apagado: #77736a; --carimbo: #2342c4; --barra: #1a1a1a; --barra-txt: #f4f1e8;
+       background: var(--fundo); color: var(--tinta); font: 12px/1.6 'JetBrains Mono', monospace; text-transform: uppercase; }
+  [data-tema="escuro"] .b { --fundo: #09090b; --papel: #1c1c20; --tinta: #ece8de; --apagado: #8d897f; --carimbo: #8ea2ff; --barra: #ece8de; --barra-txt: #141416; }
+  .b .rola { padding: 0 12px; }
+  .b-cupom { background: var(--papel); padding: 26px 16px 22px; position: relative; margin-bottom: 22px;
+             -webkit-mask: linear-gradient(#000 0 0) 0 0/100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 0 100%/14px 8px repeat-x;
+                     mask: linear-gradient(#000 0 0) 0 0/100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 0 100%/14px 8px repeat-x;
+             animation: imprime 1.1s steps(12) backwards; }
+  @keyframes imprime { from { transform: translateY(-100%); } }
+  .b-centro { text-align: center; display: flex; flex-direction: column; }
+  .b-marca { font-size: 17px; font-weight: 800; letter-spacing: .38em; padding-left: .38em; }
+  .b-mes { margin-top: 6px; display: flex; justify-content: center; gap: 18px; font-weight: 600; }
+  .b-mes button { color: var(--apagado); }
+  .b hr { border: 0; border-top: 1.5px dashed var(--apagado); margin: 12px 0; }
+  .b hr.duplo { border-top: 3.5px double var(--tinta); }
+  .b-linha { display: flex; align-items: baseline; gap: 4px; }
+  .b-linha i { flex: 1; border-bottom: 2px dotted var(--apagado); opacity: .6; transform: translateY(-3px); min-width: 8px; }
+  .b-linha span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .b-linha span:last-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .b-troco { display: flex; justify-content: space-between; align-items: baseline; }
+  .b-troco span { font-weight: 800; font-size: 14px; letter-spacing: .1em; }
+  .b-troco b { font-size: 27px; font-weight: 800; letter-spacing: -.02em; }
+  .b-carimbo { position: absolute; right: 12px; top: 20px; border: 2px solid var(--carimbo); color: var(--carimbo); font-weight: 800; font-size: 11px; line-height: 1.25;
+               padding: 5px 9px; text-align: center; letter-spacing: .12em; transform: rotate(-9deg); opacity: .82; border-radius: 3px; }
+  .b-obs { color: var(--apagado); margin-top: 8px; font-size: 11px; }
+  .b-dia { font-weight: 800; margin: 12px 0 2px; }
+  .b-dia:first-of-type { margin-top: 0; }
+  .b-sub { color: var(--apagado); font-size: 10.5px; margin: -2px 0 4px 2ch; }
+  .b-titulo { font-weight: 800; margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .b-titulo small { font-weight: 400; color: var(--apagado); font-size: 10.5px; }
+  .b-cat { display: grid; grid-template-columns: 13ch 1fr 8.5ch; gap: 8px; align-items: center; }
+  .b-cat span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .b-barra { height: 9px; display: flex; animation: b-imprime .8s steps(10) backwards; }
+  @keyframes b-imprime { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  .b-barra i { height: 100%; }
+  .b-barra .s { background: var(--tinta); }
+  .b-barra .g { background: repeating-linear-gradient(-45deg, var(--tinta) 0 1.6px, transparent 1.6px 3.2px); }
+  .b-barra .r { background: radial-gradient(var(--tinta) .8px, transparent 1px) 0 0/3px 3px; }
+  .b-mesrow { display: grid; grid-template-columns: 4ch 1fr 6ch; gap: 8px; align-items: center; }
+  .b-mesrow span:last-child { text-align: right; }
+  .b-mesrow.atual { font-weight: 800; }
+  .b-legenda { display: flex; gap: 12px; font-size: 10px; color: var(--apagado); margin: 4px 0 8px; }
+  .b-legenda i { display: inline-block; width: 14px; height: 8px; margin-right: 5px; vertical-align: 0; }
+  .b-progresso { display: flex; align-items: center; gap: 6px; }
+  .b-progresso .b-barra { flex: 1; border: 1.5px solid var(--tinta); height: 11px; padding: 1.5px; }
+  .b-codigo { height: 42px; display: flex; gap: 2px; justify-content: center; margin: 14px 0 6px; }
+  .b-codigo i { background: var(--tinta); }
+  .b-rodape { background: var(--barra); color: var(--barra-txt); display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 12px; font-size: 11px; font-weight: 600; }
+  .b-rodape nav { display: flex; gap: 12px; }
+  .b-rodape nav span { opacity: .55; }
+  .b-rodape nav .on { opacity: 1; }
+  .b-rodape nav .on::before { content: '▸'; }
+  .b-lancar { border: 1.5px solid currentColor; padding: 6px 10px; font-weight: 800; }
+
+  /* ============ C — Cobre ============ */
+  .c { --fundo: #121210; --linha: #2b2a26; --texto: #f2efe6; --mudo: #8f8a7e; --cobre: #d9834a; --cobre-txt: #1a0f07; --latao: #e3c25b; --creme: #5d594f; --verde: #9fd38b;
+       background: var(--fundo); color: var(--texto); font-family: 'Archivo', sans-serif; font-variant-numeric: tabular-nums; }
+  [data-tema="claro"] .c { --fundo: #f3f0e8; --linha: #dcd7cb; --texto: #161512; --mudo: #77726a; --cobre: #c4672b; --cobre-txt: #fff8f1; --latao: #c99d1f; --creme: #cbc4b4; --verde: #3f7f2c; }
+  .c-topo { display: flex; justify-content: space-between; align-items: center; height: 58px; padding: 0 18px; }
+  .c-marca { font-weight: 800; font-stretch: 125%; font-size: 19px; letter-spacing: -.03em; display: flex; align-items: center; gap: 8px; }
+  .c-moeda { width: 17px; height: 17px; border-radius: 50%; background: var(--cobre); box-shadow: inset 0 0 0 3px var(--cobre), inset 0 0 0 4.5px var(--fundo); }
+  .c-mes { font-stretch: 75%; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: .08em; display: flex; gap: 10px; align-items: center; }
+  .c-mes button { color: var(--mudo); font-size: 17px; }
+  .c-heroi { background: var(--cobre); color: var(--cobre-txt); padding: 18px 18px 16px; }
+  .c-rotulo { font-stretch: 75%; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .14em; }
+  .c-valor { display: block; font-stretch: 125%; font-weight: 800; font-size: 50px; line-height: 1.05; letter-spacing: -.045em; margin-top: 4px; }
+  .c-valor small { font-size: 18px; letter-spacing: 0; margin-right: 6px; vertical-align: 24px; font-weight: 700; }
+  .c-faixa { display: flex; height: 8px; }
+  .c-faixa i { height: 100%; animation: c-entra .8s cubic-bezier(.2,.7,.2,1) backwards; transform-origin: left; }
+  @keyframes c-entra { from { transform: scaleX(0); } }
+  .c .s { background: var(--creme); } .c .g { background: var(--latao); } .c .r { background: var(--cobre); }
+  .c-tres { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--linha); }
+  .c-tres > div { padding: 12px 0 12px 12px; border-left: 1px solid var(--linha); }
+  .c-tres > div:first-child { border-left: 0; padding-left: 18px; }
+  .c-tres span { display: flex; align-items: center; gap: 6px; font-stretch: 75%; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--mudo); }
+  .c-tres span i { width: 10px; height: 3px; }
+  .c-tres b { display: block; font-size: 15px; font-weight: 600; margin-top: 3px; }
+  .c-tres b small { font-size: 11px; color: var(--mudo); font-weight: 500; margin-left: 3px; }
+  .c-aviso { margin: 12px 18px 0; padding: 2px 0 2px 10px; border-left: 3px solid var(--latao); font-size: 13px; color: var(--mudo); line-height: 1.45; }
+  .c-aviso b { color: var(--texto); font-weight: 600; }
+  .c-dia { margin: 20px 18px 0; padding-bottom: 6px; border-bottom: 1px solid var(--linha); font-stretch: 75%; font-weight: 700; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--mudo); }
+  .c-item { display: grid; grid-template-columns: 3px 1fr auto; gap: 12px; margin: 0 18px; padding: 11px 0; border-bottom: 1px solid var(--linha); align-items: center; }
+  .c-item > i { align-self: stretch; }
+  .c-item b { display: block; font-weight: 600; font-size: 15px; }
+  .c-item small { font-size: 12.5px; color: var(--mudo); }
+  .c-item .v { font-size: 15px; font-weight: 600; }
+  .c-item.entrada .v { color: var(--verde); }
+  .c-item.guardar .v { color: var(--latao); }
+  .c-rodape { display: grid; grid-template-columns: 1fr 58px; border-top: 1px solid var(--linha); height: 58px; background: var(--fundo); }
+  .c-rodape nav { display: flex; }
+  .c-rodape nav span { flex: 1; display: grid; place-items: center; font-stretch: 75%; font-weight: 700; font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--mudo); border-top: 2px solid transparent; margin-top: -1px; }
+  .c-rodape nav .on { color: var(--texto); border-top-color: var(--cobre); }
+  .c-mais { background: var(--cobre); color: var(--cobre-txt); font-size: 30px; font-weight: 400; }
+  .c-titulo { padding: 6px 18px 14px; font-stretch: 125%; font-weight: 800; font-size: 34px; letter-spacing: -.04em; line-height: 1; }
+  .c-titulo span { display: block; font-stretch: 75%; font-weight: 700; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--mudo); margin-bottom: 6px; }
+  .c-h2 { display: flex; justify-content: space-between; margin: 22px 18px 10px; font-stretch: 75%; font-weight: 700; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--mudo); }
+  .c-h2 b { color: var(--texto); letter-spacing: 0; font-stretch: 100%; font-size: 13px; }
+  .c-banda { display: flex; height: 16px; margin: 0 18px 6px; gap: 2px; }
+  .c-cat { display: grid; grid-template-columns: 3px 1fr auto 38px; gap: 10px; margin: 0 18px; padding: 7px 0; border-bottom: 1px solid var(--linha); font-size: 14px; align-items: center; }
+  .c-cat i { align-self: stretch; }
+  .c-cat span:last-child { text-align: right; color: var(--mudo); font-size: 12.5px; }
+  .c-colunas { display: flex; align-items: flex-end; gap: 6px; height: 140px; margin: 26px 18px 0; position: relative; }
+  .c-colunas > div { flex: 1; display: flex; flex-direction: column-reverse; gap: 1px; animation: cresce .8s cubic-bezier(.2,.7,.2,1) backwards; transform-origin: bottom; }
+  .c-colunas > div.atual::after { content: attr(data-v); position: absolute; top: -20px; right: 0; font-size: 11px; font-weight: 700; }
+  .c-meses { display: flex; gap: 6px; margin: 6px 18px 0; font-stretch: 75%; font-size: 10.5px; font-weight: 600; color: var(--mudo); text-transform: uppercase; }
+  .c-meses span { flex: 1; text-align: center; }
+  .c-meses span:last-child { color: var(--texto); }
+  .c-legenda { display: flex; gap: 14px; margin: 10px 18px 0; font-size: 11.5px; color: var(--mudo); }
+  .c-legenda i { display: inline-block; width: 10px; height: 3px; margin-right: 6px; vertical-align: 3px; }
+  .c-caixa { margin: 0 18px; padding: 10px 0 12px; border-bottom: 1px solid var(--linha); }
+  .c-caixa > div:first-child { display: flex; justify-content: space-between; align-items: baseline; }
+  .c-caixa b { font-weight: 600; font-size: 15px; }
+  .c-caixa strong { font-stretch: 125%; font-weight: 800; font-size: 22px; letter-spacing: -.03em; }
+  .c-caixa small { display: block; font-size: 12.5px; color: var(--mudo); margin: 1px 0 8px; }
+  .c-progresso { height: 4px; background: var(--linha); }
+  .c-progresso i { display: block; height: 100%; background: var(--cobre); animation: c-entra 1s cubic-bezier(.2,.7,.2,1) backwards; transform-origin: left; }
+
+  @keyframes cresce { from { transform: scaleY(0); } }
+</style>
+</head>
+<body data-tema="escuro">
+
+<section class="intro">
+  <h1>Trocado — direções visuais</h1>
+  <p>As três direções usam as mesmas duas telas (<b>Mês</b> e <b>Resumo</b>) e os mesmos dados fictícios. Cada uma teria tema claro e escuro; troque no botão abaixo. Dá pra rolar dentro de cada tela. Pode escolher uma ou misturar, como no OficinaFlow.</p>
+  <div class="controles">
+    <button data-tema="escuro" aria-pressed="true"><span>Tema escuro</span></button>
+    <button data-tema="claro" aria-pressed="false"><span>Tema claro</span></button>
+    <button id="rever"><span>Rever animações</span></button>
+  </div>
+</section>
+
+<section class="direcao">
+  <header><b>A</b><strong>Caderneta</strong>
+    <span>Caderno pautado com margem vermelha e tinta azul e vermelha. O total leva o sublinhado duplo de livro-caixa, e os avisos aparecem como anotação à mão. O gráfico é desenhado a traço, como se fosse riscado a caneta. Fontes: Fraunces, IBM Plex Mono e Caveat. Foi pensada no claro; no escuro vira caderno à noite.</span>
+  </header>
+  <div class="telas" id="dirA"></div>
+</section>
+
+<section class="direcao">
+  <header><b>B</b><strong>Cupom</strong>
+    <span>O mês vira um cupom fiscal: tudo em fonte monoespaçada, linhas pontilhadas e o que sobra aparece como <b>TROCO</b>, que é de onde vem o nome. Leva um carimbo azul quando você guardou e código de barras no fim. Ao abrir, o cupom "sai da impressora". Fonte: JetBrains Mono.</span>
+  </header>
+  <div class="telas" id="dirB"></div>
+</section>
+
+<section class="direcao">
+  <header><b>C</b><strong>Cobre</strong>
+    <span>Escura e cor de moeda. O que sobrou aparece gigante numa faixa cobre, e a composição do mês (saiu, guardou, sobrou) fica numa barra só. As categorias têm barra lateral colorida, como os status do OficinaFlow. Fonte: Archivo, larga nos números e estreita nos rótulos. Os números contam ao abrir.</span>
+  </header>
+  <div class="telas" id="dirC"></div>
+</section>
+
+<p class="fim">No computador, a tela do Mês vira duas colunas: a lista à esquerda e o resumo à direita. A tela de lançar e a de caixinhas saem no estilo que você escolher.</p>
+
+<script>
+const MES = { entrou: 620000, guardado: 124000, saiu: 387045, sobrou: 108955, pct: 20 };
+const DIAS = [
+  { d: 14, sem: 'qua', itens: [
+    { tipo: 'saida', cat: 'Mercado', desc: 'Atacadão', valor: 31240, forma: 'Débito', cor: '#6fb7a8' },
+    { tipo: 'saida', cat: 'Saúde', desc: 'Drogasil', valor: 4780, forma: 'Pix', cor: '#5fb3d9' } ] },
+  { d: 12, sem: 'seg', itens: [
+    { tipo: 'entrada', cat: 'Freela', desc: 'Site da padaria', valor: 120000, forma: 'Pix', cor: 'var(--verde)' },
+    { tipo: 'guardar', cat: 'Reserva', desc: '20% do freela', valor: 24000, cor: 'var(--latao)' } ] },
+  { d: 10, sem: 'sáb', itens: [
+    { tipo: 'fatura', cat: 'Cartão', desc: 'Fatura Nubank', valor: 143210, forma: '23 compras de setembro', cor: 'var(--mudo)' } ] },
+  { d: 8, sem: 'qui', itens: [
+    { tipo: 'saida', cat: 'Moradia', desc: 'Aluguel', valor: 110000, forma: 'Pix', cor: '#8f9bff' } ] },
+  { d: 5, sem: 'seg', itens: [
+    { tipo: 'entrada', cat: 'Salário', desc: 'Salário', valor: 500000, forma: 'Transferência', cor: 'var(--verde)' },
+    { tipo: 'guardar', cat: 'Reserva', desc: '20% do salário', valor: 100000, cor: 'var(--latao)' } ] },
+];
+const CATEGORIAS = [
+  ['Moradia', 110000, '#8f9bff'], ['Mercado', 84230, '#6fb7a8'], ['Restaurantes', 48690, '#e46d6d'],
+  ['Transporte', 41215, '#7fb069'], ['Lazer', 35260, '#b08bd9'], ['Saúde', 24780, '#5fb3d9'],
+  ['Assinaturas', 18970, '#d99a5f'], ['Outros', 23900, '#8a857a'],
+];
+// [mês, entrou, guardado, saiu] — sobrou é o resto
+const MESES = [
+  ['nov', 540000, 108000, 410000], ['dez', 780000, 156000, 520000], ['jan', 500000, 100000, 380000],
+  ['fev', 500000, 100000, 370000], ['mar', 610000, 122000, 405000], ['abr', 500000, 100000, 360000],
+  ['mai', 560000, 112000, 395000], ['jun', 500000, 100000, 385000], ['jul', 680000, 136000, 400000],
+  ['ago', 500000, 100000, 360000], ['set', 590000, 118000, 380000], ['out', 620000, 124000, 387045],
+];
+const CAIXINHAS = [['Reserva de emergência', 1438000, 2400000], ['Viagem', 215000, 600000], ['Carro', 390000, 1500000]];
+
+const fmt = c => (c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const mil = c => (c / 100000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+const MAIOR_MES = Math.max(...MESES.map(m => m[1]));
+const MAIOR_CAT = CATEGORIAS[0][1];
+const atraso = i => `style="animation-delay:${i * 60}ms"`;
+
+/* ---------- A ---------- */
+function aMes() {
+  const lista = DIAS.map(dia => `
+    <h3 class="a-dia">${dia.sem}, ${dia.d}</h3>
+    ${dia.itens.map(i => `
+      <div class="a-item ${i.tipo}">
+        <span>${i.desc}<small>${i.tipo === 'guardar' ? '→ ' + i.cat.toLowerCase() : i.tipo === 'fatura' ? 'cartão' : i.cat.toLowerCase()}</small></span>
+        <span class="num ${i.tipo === 'saida' ? 'neg' : ''}">${i.tipo === 'entrada' ? '+' : ''}${fmt(i.valor)}</span>
+      </div>`).join('')}`).join('');
+  return `
+  <div class="tela a">
+    <div class="rola"><div class="a-folha">
+      <header class="a-topo"><span class="a-marca">Trocado</span><span class="a-mes"><button>‹</button>outubro <em>de 2026</em><button>›</button></span></header>
+      <div class="a-conta">
+        <div><span>Entrou</span><span class="num pos">6.200,00</span></div>
+        <div><span>Guardei<small>20%</small></span><span class="num">1.240,00</span></div>
+        <div><span>Gastei</span><span class="num neg">3.870,45</span></div>
+        <div class="a-total"><span>Sobrou</span><span class="num">1.089,55</span></div>
+      </div>
+      <p class="a-nota">Nubank (986,40) só cai em novembro</p>
+      ${lista}
+    </div></div>
+    <div class="a-rodape">
+      <button class="a-anotar">+ anotar</button>
+      <nav class="a-abas"><span class="on">mês</span><span>resumo</span><span>caixinhas</span><span>ajustes</span></nav>
+    </div>
+  </div>`;
+}
+
+function aResumo() {
+  const cats = CATEGORIAS.map(([n, v], i) => `
+    <div class="a-cat"><span>${n}</span><i class="a-traco" style="width:${(v / MAIOR_CAT * 100).toFixed(1)}%;animation-delay:${i * 70}ms"></i><span class="num">${fmt(v)}</span></div>`).join('');
+  const colunas = MESES.map(([m, e, g, s], i) => {
+    const h = x => (x / MAIOR_MES * 138).toFixed(1) + 'px';
+    return `<div ${atraso(i)}><i class="s" style="height:${h(s)}"></i><i class="g" style="height:${h(g)}"></i><i class="r" style="height:${h(e - g - s)}"></i></div>`;
+  }).join('');
+  const caixas = CAIXINHAS.map(([n, v, meta], i) => `
+    <div class="a-caixa">
+      <div><span>${n}</span><span class="num"><b>${mil(v)}</b> de ${mil(meta)} mil</span></div>
+      <div class="a-regua"><i style="width:${(v / meta * 100).toFixed(1)}%;animation-delay:${i * 120}ms"></i></div>
+    </div>`).join('');
+  return `
+  <div class="tela a">
+    <div class="rola"><div class="a-folha">
+      <header class="a-topo"><span class="a-marca">Trocado</span><span class="a-mes">resumo de outubro</span></header>
+      <p class="a-nota">guardei 20% de tudo que entrou ✓</p>
+      <h2 class="a-h2">Para onde foi <span class="num">3.870,45</span></h2>
+      ${cats}
+      <p class="a-nota vermelha">restaurantes 34% acima da média!</p>
+      <h2 class="a-h2">Doze meses</h2>
+      <div class="a-colunas">${colunas}</div>
+      <div class="a-meses">${MESES.map(m => `<span>${m[0][0]}</span>`).join('')}</div>
+      <p class="a-nota" style="padding-top:0;height:28px">riscado: gastei · cheio: guardei · vazio: sobrou</p>
+      <h2 class="a-h2">Caixinhas <span class="num">20.430,00</span></h2>
+      ${caixas}
+    </div></div>
+    <div class="a-rodape">
+      <button class="a-anotar">+ anotar</button>
+      <nav class="a-abas"><span>mês</span><span class="on">resumo</span><span>caixinhas</span><span>ajustes</span></nav>
+    </div>
+  </div>`;
+}
+
+/* ---------- B ---------- */
+function codigoDeBarras() {
+  let s = 7, html = '';
+  for (let i = 0; i < 46; i++) { s = (s * 9301 + 49297) % 233280; html += `<i style="width:${1 + (s % 3)}px"></i>`; }
+  return html;
+}
+const bRodape = aba => `
+  <div class="b-rodape">
+    <nav>${['mês', 'resumo', 'caixas', 'ajustes'].map(t => `<span class="${t === aba ? 'on' : ''}">${t}</span>`).join('')}</nav>
+    <button class="b-lancar">+ lançar</button>
+  </div>`;
+
+function bMes() {
+  const lista = DIAS.map(dia => `
+    <div class="b-dia">${String(dia.d).padStart(2, '0')}/10 ${dia.sem}</div>
+    ${dia.itens.map(i => {
+      const nome = i.tipo === 'guardar' ? 'guardado · ' + i.cat : i.tipo === 'fatura' ? i.desc : `${i.cat} · ${i.desc}`;
+      const valor = fmt(i.valor) + (i.tipo === 'entrada' ? '+' : '-');
+      const sub = i.tipo === 'guardar' ? i.desc : i.forma;
+      return `<div class="b-linha"><span>${nome}</span><i></i><span>${valor}</span></div><div class="b-sub">${sub}</div>`;
+    }).join('')}`).join('');
+  return `
+  <div class="tela b">
+    <div class="rola"><div class="b-cupom">
+      <div class="b-centro"><b class="b-marca">TROCADO</b><span>extrato do mês</span>
+        <span class="b-mes"><button>‹ set</button><span>outubro/2026</span><button>nov ›</button></span></div>
+      <hr>
+      <div class="b-linha"><span>entrou</span><i></i><span>6.200,00</span></div>
+      <div class="b-linha"><span>guardado 20%</span><i></i><span>1.240,00-</span></div>
+      <div class="b-linha"><span>saiu</span><i></i><span>3.870,45-</span></div>
+      <hr class="duplo">
+      <div class="b-troco"><span>troco</span><b>R$ 1.089,55</b></div>
+      <div class="b-carimbo">guardado<br>20% ✓</div>
+      <p class="b-obs">* fatura nubank 986,40 vence em nov</p>
+      <hr>
+      ${lista}
+      <hr>
+      <div class="b-codigo">${codigoDeBarras()}</div>
+      <p class="b-centro">guarde o troco</p>
+    </div></div>
+    ${bRodape('mês')}
+  </div>`;
+}
+
+function bResumo() {
+  const cats = CATEGORIAS.map(([n, v]) => `
+    <div class="b-cat"><span>${n}</span><span class="b-barra"><i class="s" style="width:${(v / MAIOR_CAT * 100).toFixed(1)}%"></i></span><span>${fmt(v)}</span></div>`).join('');
+  const meses = MESES.map(([m, e, g, s], i) => {
+    const p = x => (x / MAIOR_MES * 100).toFixed(1) + '%';
+    return `<div class="b-mesrow ${i === MESES.length - 1 ? 'atual' : ''}"><span>${m}</span>
+      <span class="b-barra" ${atraso(i)}><i class="s" style="width:${p(s)}"></i><i class="g" style="width:${p(g)}"></i><i class="r" style="width:${p(e - g - s)}"></i></span>
+      <span>${(e / 100).toLocaleString('pt-BR')}</span></div>`;
+  }).join('');
+  const caixas = CAIXINHAS.map(([n, v, meta]) => `
+    <div style="margin-bottom:8px">${n}
+      <div class="b-progresso"><span class="b-barra"><i class="s" style="width:${(v / meta * 100).toFixed(1)}%"></i></span><span>${Math.round(v / meta * 100)}%</span></div>
+      <div class="b-sub" style="margin-left:0">${fmt(v)} de ${fmt(meta)}</div></div>`).join('');
+  return `
+  <div class="tela b">
+    <div class="rola"><div class="b-cupom">
+      <div class="b-centro"><b class="b-marca">TROCADO</b><span>resumo · outubro/2026</span></div>
+      <hr>
+      <div class="b-titulo">para onde foi <small>3.870,45</small></div>
+      ${cats}
+      <p class="b-obs">* restaurantes +34% sobre a média de 3 meses</p>
+      <hr>
+      <div class="b-titulo">12 meses <small>entrou</small></div>
+      <div class="b-legenda"><span><i style="background:var(--tinta)"></i>saiu</span><span><i style="background:repeating-linear-gradient(-45deg,var(--tinta) 0 1.6px,transparent 1.6px 3.2px)"></i>guardado</span><span><i style="background:radial-gradient(var(--tinta) .8px,transparent 1px) 0 0/3px 3px"></i>sobrou</span></div>
+      ${meses}
+      <hr>
+      <div class="b-titulo">caixinhas <small>20.430,00</small></div>
+      ${caixas}
+    </div></div>
+    ${bRodape('resumo')}
+  </div>`;
+}
+
+/* ---------- C ---------- */
+const cRodape = aba => `
+  <div class="c-rodape">
+    <nav>${['Mês', 'Resumo', 'Caixinhas', 'Ajustes'].map(t => `<span class="${t === aba ? 'on' : ''}">${t}</span>`).join('')}</nav>
+    <button class="c-mais" aria-label="Lançar">+</button>
+  </div>`;
+const cTopo = `<header class="c-topo"><span class="c-marca"><i class="c-moeda"></i>trocado</span><span class="c-mes"><button>‹</button>Out 2026<button>›</button></span></header>`;
+
+function cMes() {
+  const pct = x => (x / MES.entrou * 100).toFixed(2) + '%';
+  const lista = DIAS.map(dia => `
+    <div class="c-dia">${{ qua: 'Quarta', seg: 'Segunda', sáb: 'Sábado', qui: 'Quinta' }[dia.sem]} ${dia.d}</div>
+    ${dia.itens.map(i => {
+      const sinal = i.tipo === 'entrada' ? '+' : '−';
+      const sub = i.tipo === 'guardar' ? `Guardado → ${i.cat}` : i.tipo === 'fatura' ? `Cartão · ${i.forma}` : `${i.cat} · ${i.forma}`;
+      return `<div class="c-item ${i.tipo}"><i style="background:${i.cor}"></i><div><b>${i.desc}</b><small>${sub}</small></div><span class="v">${sinal} ${fmt(i.valor)}</span></div>`;
+    }).join('')}`).join('');
+  return `
+  <div class="tela c">
+    ${cTopo}
+    <div class="rola">
+      <section class="c-heroi"><span class="c-rotulo">Sobrou em outubro</span><b class="c-valor"><small>R$</small><span data-conta="${MES.sobrou}">1.089,55</span></b></section>
+      <div class="c-faixa"><i class="s" style="width:${pct(MES.saiu)}"></i><i class="g" style="width:${pct(MES.guardado)};animation-delay:120ms"></i><i class="r" style="width:${pct(MES.sobrou)};animation-delay:240ms"></i></div>
+      <div class="c-tres">
+        <div><span>Entrou</span><b>6.200,00</b></div>
+        <div><span><i class="g"></i>Guardou</span><b>1.240,00<small>20%</small></b></div>
+        <div><span><i class="s"></i>Saiu</span><b>3.870,45</b></div>
+      </div>
+      <p class="c-aviso">Fatura aberta do Nubank: <b>986,40</b>. Entra em novembro, quando vence.</p>
+      ${lista}
+      <div style="height:20px"></div>
+    </div>
+    ${cRodape('Mês')}
+  </div>`;
+}
+
+function cResumo() {
+  const total = CATEGORIAS.reduce((t, c) => t + c[1], 0);
+  const banda = CATEGORIAS.map(([, v, cor]) => `<i style="flex:${v};background:${cor}"></i>`).join('');
+  const cats = CATEGORIAS.map(([n, v, cor]) => `
+    <div class="c-cat"><i style="background:${cor}"></i><span>${n}</span><span>${fmt(v)}</span><span>${Math.round(v / total * 100)}%</span></div>`).join('');
+  const colunas = MESES.map(([m, e, g, s], i) => {
+    const h = x => (x / MAIOR_MES * 136).toFixed(1) + 'px';
+    const ultimo = i === MESES.length - 1;
+    return `<div class="${ultimo ? 'atual' : ''}" data-v="6.200" ${atraso(i)}><i class="s" style="height:${h(s)}"></i><i class="g" style="height:${h(g)}"></i><i class="r" style="height:${h(e - g - s)}"></i></div>`;
+  }).join('');
+  const caixas = CAIXINHAS.map(([n, v, meta], i) => `
+    <div class="c-caixa">
+      <div><b>${n}</b><strong>${Math.round(v / meta * 100)}%</strong></div>
+      <small>${fmt(v)} de ${fmt(meta)}</small>
+      <div class="c-progresso"><i style="width:${(v / meta * 100).toFixed(1)}%;animation-delay:${i * 120}ms"></i></div>
+    </div>`).join('');
+  return `
+  <div class="tela c">
+    ${cTopo}
+    <div class="rola">
+      <h1 class="c-titulo"><span>Resumo</span>Outubro</h1>
+      <h2 class="c-h2" style="margin-top:4px">Para onde foi <b>3.870,45</b></h2>
+      <div class="c-banda">${banda}</div>
+      ${cats}
+      <p class="c-aviso" style="border-color:#e46d6d">Restaurantes: <b>+34%</b> sobre a sua média dos últimos 3 meses.</p>
+      <h2 class="c-h2">12 meses <b>taxa de poupança 20%</b></h2>
+      <div class="c-colunas">${colunas}</div>
+      <div class="c-meses">${MESES.map(m => `<span>${m[0][0]}</span>`).join('')}</div>
+      <div class="c-legenda"><span><i class="s"></i>Saiu</span><span><i class="g"></i>Guardou</span><span><i class="r"></i>Sobrou</span></div>
+      <h2 class="c-h2">Caixinhas <b>20.430,00</b></h2>
+      ${caixas}
+      <div style="height:20px"></div>
+    </div>
+    ${cRodape('Resumo')}
+  </div>`;
+}
+
+function contar() {
+  document.querySelectorAll('[data-conta]').forEach(el => {
+    const alvo = +el.dataset.conta, ini = performance.now(), dur = 900;
+    const passo = t => {
+      const p = Math.min(1, (t - ini) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(Math.round(alvo * e));
+      if (p < 1) requestAnimationFrame(passo);
+    };
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(passo);
+  });
+}
+
+function desenhar() {
+  document.getElementById('dirA').innerHTML = aMes() + aResumo();
+  document.getElementById('dirB').innerHTML = bMes() + bResumo();
+  document.getElementById('dirC').innerHTML = cMes() + cResumo();
+  contar();
+}
+
+document.querySelectorAll('.controles [data-tema]').forEach(b => b.addEventListener('click', () => {
+  document.body.dataset.tema = b.dataset.tema;
+  document.querySelectorAll('.controles [data-tema]').forEach(x => x.setAttribute('aria-pressed', x === b));
+}));
+document.getElementById('rever').addEventListener('click', desenhar);
+desenhar();
+</script>
+</body>
+</html>
